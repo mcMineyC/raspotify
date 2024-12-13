@@ -1,0 +1,43 @@
+name: Build and release package 
+
+on:
+  push:
+    branches:
+    - main
+permissions:
+  contents: write 
+
+jobs:
+  setup:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d %I:%M')"
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Install build dependencies 
+        run: sudo apt-get install git build-essential
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build
+        run: make arm64
+      - name: Rename packages
+        run: mv raspotify*arm64.deb raspotify_arm64.deb
+      - name: Rename packages
+        run: mv asound-conf-wizard*arm64.deb asound-conf-wizard_arm64.deb
+      - uses: actions/upload-artifact@v3
+        with:
+          path: asound-conf-wizard_arm64.deb
+      - uses: actions/upload-artifact@v3
+        with:
+          path: raspotify_arm64.deb
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "asound-conf-wizard_arm64.deb,raspotify_arm64.deb"
+          tag: ${{ steps.vars.outputs.sha_short }}
+          makeLatest: true
+          name: ${{ steps.date.outputs.date }}
+          body: "## This was autoreleased via github actions"
