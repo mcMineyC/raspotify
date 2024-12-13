@@ -1,4 +1,4 @@
 [submodule "librespot"]
 	path = librespot
-	url = https://github.com/librespot-org/librespot
+	url = https://github.com/mcmineyc/librespot
 	branch = dev
